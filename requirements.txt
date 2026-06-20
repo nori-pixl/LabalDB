@@ -1,7 +1,4 @@
-Flask
-Flask-CORS
-Werkzeug
-requests
-urllib3
-aiohttp
-gunicorn
+Flask==3.0.3
+Flask-CORS==4.0.1
+Werkzeug==3.0.3
+gunicorn==22.0.0
