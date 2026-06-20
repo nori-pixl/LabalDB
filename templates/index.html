@@ -220,7 +220,7 @@
         // 環境変数やデプロイ状況に応じて、接続先のFlaskサーバーのURLを指定します
         const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://127.0.0.1:5000'
-            : 'https://cloudflare.com'; 
+            : ''; 
 
         let currentEnvMode = 'LOCAL';
         let temporaryColumns = []; // 組み立て中のカラムを一時保管する配列
