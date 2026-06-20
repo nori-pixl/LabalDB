@@ -1,7 +1,7 @@
 import os
 import json
-import psycopg2
-from psycopg2.extras import DictCursor
+import psycopg
+from psycopg.rows import dict_row
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
