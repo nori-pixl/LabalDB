@@ -1,4 +1,5 @@
 Flask
+flask_core
 gunicorn
 psycopg
 psycopg-binary
