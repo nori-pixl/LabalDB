@@ -4,3 +4,4 @@ Werkzeug
 requests
 urllib3
 aiohttp
+gunicorn
