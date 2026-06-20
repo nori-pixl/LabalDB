@@ -1,5 +1,6 @@
 Flask
-flask_core
-gunicorn
-psycopg
-psycopg-binary
+Flask-CORS
+Werkzeug
+requests
+urllib3
+aiohttp
