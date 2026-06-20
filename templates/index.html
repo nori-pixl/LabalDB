@@ -3,54 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LabelDB - 管理ダッシュボード</title>
+    <title>LabelDB - プラットフォームコンソール</title>
     <style>
-        /* 外部CSS不要：100%確実に適用されるRender風ダークモードスタイル */
+        /* 外部CSS不要：あらゆる環境で100%確実に適用されるRender風ダークモードコアスタイル */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0A0A0C; color: #E2E8F0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", sans-serif;
-            font-size: 13px; line-height: 1.5; padding-bottom: 60px;
+            font-size: 13px; line-height: 1.5; padding-bottom: 80px;
         }
-        /* コンポーネント共通 */
         .mono { font-family: monospace; }
+        
+        /* ナビゲーションヘッダー */
         .header {
-            width: 100%; background: #111115;
-            border-bottom: 1px solid #22222A; padding: 12px 24px;
-            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; background: #111115; border-bottom: 1px solid #22222A;
+            padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
         }
         .logo-area { display: flex; align-items: center; gap: 10px; }
         .logo-icon {
-            width: 24px; height: 24px; background-color: #4F46E5;
-            border-radius: 4px; display: flex; align-items: center;
-            justify-content: center; font-weight: bold; color: white; font-size: 12px;
+            width: 24px; height: 24px; background-color: #4F46E5; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 12px;
         }
         .logo-text { font-family: monospace; font-size: 15px; font-weight: 600; color: white; }
         
-        /* ページ全体コンテナ */
+        /* ページメインコンテナ */
         .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .page-title { font-size: 18px; font-weight: 600; color: white; }
+        .page-title { font-size: 18px; font-weight: 600; color: white; font-family: monospace; }
         
-        /* ボタン */
+        /* 各種アクションボタン */
         .btn-create {
             background-color: #4F46E5; color: white; border: none; padding: 8px 16px;
-            border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+            border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: monospace;
         }
         .btn-create:hover { background-color: #4338CA; }
+        .btn-secondary {
+            background-color: transparent; border: 1px solid #2D2D3D; color: #94A3B8;
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: monospace;
+        }
+        .btn-secondary:hover { border-color: #475569; color: white; }
+        
+        /* スクリプト風ブロック定義パーツ */
+        .block-palette-btn {
+            padding: 8px 12px; border-radius: 6px; color: white; text-align: left;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; transition: opacity 0.15s;
+        }
+        .block-palette-btn:hover { opacity: 0.9; }
+        .type-indicator {
+            width: 22px; height: 22px; border-radius: 4px; font-size: 11px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: monospace;
+        }
+        .bg-str { background-color: #1E1B4B; color: #818CF8; border: 1px solid #312E81; }
+        .bg-num { background-color: #064E3B; color: #34D399; border: 1px solid #065F46; }
 
-        /* データベースカードグリッド */
+        /* データベースカードボード */
         .db-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
         .db-card {
             background-color: #111116; border: 1px solid #22222B; border-radius: 8px; padding: 16px;
             display: flex; flex-direction: column; gap: 12px; transition: border-color 0.15s; cursor: pointer;
         }
-        .db-card:hover { border-color: #323246; }
+        .db-card:hover { border-color: #4F46E5; }
         .card-top { display: flex; justify-content: space-between; align-items: center; }
         .db-name { font-size: 14px; font-weight: 600; color: white; font-family: monospace; }
         
-        /* ステータスバッジ */
-        .status-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; }
+        /* 状態インジケータ */
+        .status-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: monospace; font-weight: 600; }
         .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
         .status-online { color: #10B981; }
         .status-online .dot { background-color: #10B981; box-shadow: 0 0 6px #10B981; }
@@ -61,6 +78,7 @@
         .net-tag { font-size: 10px; font-family: monospace; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         .net-local { background-color: #1C1917; color: #A8A29E; border: 1px solid #44403C; }
         .net-shared { background-color: #1E1B4B; color: #818CF8; border: 1px solid #312E81; }
+        .net-external { background-color: #2E1B4E; color: #C084FC; border: 1px solid #4C1D95; }
         
         .db-meta { font-size: 11px; color: #64748B; font-family: monospace; border-top: 1px solid #1F1F27; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
     </style>
@@ -71,50 +89,27 @@
     <header class="header">
         <div class="logo-area">
             <div class="logo-icon">L</div>
-            <span class="logo-text">LabelDB プラットフォーム</span>
+            <span class="logo-text">LabelDB Platform</span>
         </div>
-        <div style="font-size: 11px; color: #64748B;">空きスロット: 10個中 2個を使用中</div>
+        <div id="usage-counter" class="mono" style="font-size: 11px; color: #64748B;">使用枠: 10個中 0個</div>
     </header>
 
     <div class="container">
-        <!-- ページヘッダー -->
+        <!-- ページメインヘッダー -->
         <div class="page-header">
-            <h1 class="page-title">データベース一覧</h1>
-            <!-- クリックすると、新規作成用ポップアップを表示 -->
-            <button class="btn-create" onclick="document.getElementById('db-create-modal').style.display='flex'">
+            <h1 class="page-title">インフラダッシュボード</h1>
+            <button class="btn-create" onclick="openCreateModal()">
                 ＋ データベースを作る
             </button>
         </div>
 
-        <!-- データベース一覧（ホーム画面のメインリスト） -->
-        <div class="db-grid">
-            <!-- カード1: 共有 / オンライン状態 -->
-            <div class="db-card" onclick="document.getElementById('db-manage-modal').style.display='flex'">
-                <div class="card-top">
-                    <span class="db-name">本番用_ラベルデータ_v1</span>
-                    <span class="status-badge status-online"><span class="dot"></span>オンライン</span>
-                </div>
-                <div class="db-meta">
-                    <span class="mono">ID: srv_abc123xyz</span>
-                    <span class="net-tag net-shared">クラウド共有</span>
-                </div>
-            </div>
-
-            <!-- カード2: ローカルホスト / オフライン状態 -->
-            <div class="db-card" onclick="document.getElementById('db-manage-modal').style.display='flex'">
-                <div class="card-top">
-                    <span class="db-name">テスト環境_データベース</span>
-                    <span class="status-badge status-offline"><span class="dot"></span>オフライン</span>
-                </div>
-                <div class="db-meta">
-                    <span class="mono">ID: srv_tst987qwe</span>
-                    <span class="net-tag net-local">ローカルホスト</span>
-                </div>
-            </div>
+        <!-- 物理的にデータがマッピングされてマウントされるコンテナエリア -->
+        <div id="real-db-grid" class="db-grid">
+            <!-- JavaScriptのロード処理によって自動でここにカードが生成されます -->
         </div>
     </div>
         <!-- ========================================== -->
-    <!-- ウインドウ1: データベースを新規作成する画面  -->
+    <!-- ウインドウ1: データベースを新規作成・埋め込みする画面 -->
     <!-- ========================================== -->
     <div id="db-create-modal" style="
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -123,7 +118,7 @@
     ">
         <div style="
             background-color: #111116; border: 1px solid #2D2D3D; border-radius: 12px;
-            width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            width: 100%; max-width: 520px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             display: flex; flex-direction: column; overflow: hidden;
         ">
             <!-- ウィンドウヘッダー -->
@@ -131,262 +126,347 @@
                 padding: 16px 20px; border-bottom: 1px solid #22222B; background-color: #161620;
                 display: flex; justify-content: space-between; align-items: center;
             ">
-                <span style="font-size: 13px; font-weight: 600; color: white;">新しいデータベースを配置</span>
-                <button onclick="document.getElementById('db-create-modal').style.display='none'" style="
-                    background: none; border: none; color: #64748B; font-size: 16px; cursor: pointer;
-                ">✕</button>
+                <span class="mono" style="font-size: 13px; font-weight: 600; color: white;">新しいデータベースを構築</span>
+                <button onclick="closeCreateModal()" style="background: none; border: none; color: #64748B; font-size: 16px; cursor: pointer;">✕</button>
             </div>
 
-            <!-- ウィンドウ中身 -->
-            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <!-- ウィンドウコンテンツ本体 -->
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; max-height: 75vh; overflow-y: auto;">
                 
                 <!-- データベース名入力 -->
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label style="font-size: 11px; font-weight: 600; color: #94A3B8; tracking-wide: 1px;">データベース名</label>
-                    <input type="text" placeholder="例: label_catalog_db" class="mono" style="
+                    <label class="mono" style="font-size: 11px; font-weight: 600; color: #94A3B8;">データベース名</label>
+                    <input type="text" id="input-db-name" placeholder="例: user_label_catalog" class="mono" style="
                         background-color: #0A0A0E; border: 1px solid #22222B; border-radius: 6px;
                         padding: 8px 12px; color: white; font-size: 12px; width: 100%; outline: none;
                     ">
                 </div>
 
-                <!-- ネットワーク種別選択 (ローカルホスト vs 共有) -->
-                <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #1F1F27; padding-top: 14px;">
-                    <label style="font-size: 11px; font-weight: 600; color: #94A3B8;">ネットワーク環境の選択</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
-                        <!-- ローカルホスト選択ボタン -->
-                        <button onclick="document.getElementById('flask-port-section').style.display='flex'" style="
-                            padding: 10px; background-color: #1C1917; border: 1px solid #44403C;
-                            border-radius: 6px; color: #A8A29E; text-align: center; cursor: pointer; font-weight: 600;
-                        ">ローカルホスト (Python Flask)</button>
-                        
-                        <!-- 共有選択ボタン -->
-                        <button onclick="document.getElementById('flask-port-section').style.display='none'" style="
-                            padding: 10px; background-color: #161620; border: 1px solid #262636;
-                            border-radius: 6px; color: #64748B; text-align: center; cursor: pointer;
-                        ">クラウド共有 (同期モード)</button>
+                <!-- 方式切り替え環境選択 -->
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label class="mono" style="font-size: 11px; font-weight: 600; color: #94A3B8;">接続環境の選択</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 2px;">
+                        <button id="tab-local" onclick="switchEnvMode('LOCAL')" class="mono" style="padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold; border: 1px solid #44403C; background-color: #1C1917; color: #A8A29E;">LOCALHOST</button>
+                        <button id="tab-shared" onclick="switchEnvMode('SHARED')" class="mono" style="padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid #262636; background-color: #161620; color: #64748B;">SHARED</button>
+                        <button id="tab-external" onclick="switchEnvMode('EXTERNAL')" class="mono" style="padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid #262636; background-color: #161620; color: #64748B;">外部SQL埋込</button>
                     </div>
                 </div>
 
-                <!-- Flask専用：ポート指定インプット領域 -->
+                <!-- 可変オプションA: Flaskポート設定（LOCAL専用） -->
                 <div id="flask-port-section" style="display: flex; flex-direction: column; gap: 6px; background-color: #0E0E12; border: 1px solid #1F1F27; padding: 12px; border-radius: 6px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label class="mono" style="font-size: 11px; font-weight: 600; color: #34D399;">🐍 FLASK サーバーポート</label>
-                        <span style="font-size: 10px; color: #059669; font-family: monospace;">バックエンド: SQLite3</span>
+                    <label class="mono" style="font-size: 11px; font-weight: 600; color: #34D399;">🐍 FLASKポート番号 (Python)</label>
+                    <input type="number" id="input-flask-port" value="5000" class="mono" style="background-color: #0A0A0E; border: 1px solid #065F46; border-radius: 6px; padding: 8px 12px; color: #34D399; font-size: 12px; width: 100%; outline: none;">
+                </div>
+
+                <!-- 可変オプションB: 外部SQLのURL埋め込み（EXTERNAL専用） -->
+                <div id="external-url-section" style="display: none; flex-direction: column; gap: 6px; background-color: #121016; border: 1px solid #2E1B4E; padding: 12px; border-radius: 6px;">
+                    <label class="mono" style="font-size: 11px; font-weight: 600; color: #A78BFA;">🌐 外部SQL接続URL</label>
+                    <input type="text" id="input-external-url" placeholder="postgresql://user:pass@host:5432/db" class="mono" style="background-color: #0A0A0E; border: 1px solid #4C1D95; border-radius: 6px; padding: 8px 12px; color: #C084FC; font-size: 11px; width: 100%; outline: none;">
+                </div>
+
+                <!-- カラム定義ブロックパレット -->
+                <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #1F1F27; padding-top: 14px;">
+                    <label class="mono" style="font-size: 11px; font-weight: 600; color: #94A3B8;">カラムブロック（横の値を追加）</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
+                        <button onclick="addColumnSchemaBlock('string')" class="block-palette-btn" style="background-color: #1E1B4B; border: 1px solid #312E81;">
+                            <div class="type-indicator bg-str">str</div><span>文字列ブロックを追加</span>
+                        </button>
+                        <button onclick="addColumnSchemaBlock('number')" class="block-palette-btn" style="background-color: #064E3B; border: 1px solid #065F46;">
+                            <div class="type-indicator bg-num">num</div><span>数値ブロックを追加</span>
+                        </button>
                     </div>
-                    <input type="number" value="5000" min="1024" max="65535" class="mono" style="
-                        background-color: #0A0A0E; border: 1px solid #065F46; border-radius: 6px;
-                        padding: 8px 12px; color: #34D399; font-size: 12px; width: 100%; outline: none;
-                    ">
-                    <p style="font-size: 11px; color: #64748B; margin-top: 2px;">パソコン内のPythonスクリプトと通信するためのポート番号です。</p>
+                </div>
+
+                <!-- ブロックが組み立てられて並ぶコンテナプレビュー領域 -->
+                <div id="modal-block-container" style="
+                    background-color: #0A0A0E; border: 1px solid #1F1F27; border-radius: 8px;
+                    padding: 12px; min-height: 80px; display: flex; flex-direction: column; gap: 8px;
+                ">
+                    <p id="modal-empty-msg" class="mono" style="color: #475569; font-size: 11px; text-align: center; margin: auto;">追加されたカラム設計図がここに並びます</p>
                 </div>
             </div>
 
-            <!-- ウィンドウフッター -->
+            <!-- ウィンドウフッターアクション -->
             <div style="padding: 12px 20px; border-top: 1px solid #22222B; background-color: #161620; display: flex; justify-content: flex-end; gap: 8px;">
-                <button onclick="document.getElementById('db-create-modal').style.display='none'" style="
-                    background-color: transparent; border: 1px solid #2D2D3D; color: #94A3B8; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;
-                ">キャンセル</button>
-                <button onclick="alert('Flaskインフラストラクチャを構築中...'); document.getElementById('db-create-modal').style.display='none'" style="
-                    background-color: #4F46E5; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;
-                ">データベースを構築する</button>
+                <button onclick="closeCreateModal()" class="btn-secondary">キャンセル</button>
+                <button onclick="submitProvisionInstance()" class="btn-create">データベースを作成する</button>
             </div>
         </div>
     </div>
 
-
     <!-- ========================================== -->
-    <!-- ウインドウ2: データベースに入った後の管理画面 -->
+    <!-- セクション3: カードを押すと出現するライブデータ表示エリア -->
     <!-- ========================================== -->
-    <div id="db-manage-modal" style="
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
-        justify-content: center; align-items: center; z-index: 1000; padding: 20px;
-    ">
-        <div style="
-            background-color: #111116; border: 1px solid #2D2D3D; border-radius: 12px;
-            width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            display: flex; flex-direction: column; overflow: hidden;
-        ">
-            <!-- ウィンドウヘッダー -->
-            <div style="
-                padding: 16px 20px; border-bottom: 1px solid #22222B; background-color: #161620;
-                display: flex; justify-content: space-between; align-items: center;
-            ">
-                <div>
-                    <span style="font-size: 13px; font-weight: 600; color: white; display: block;">インフラ稼働コントロール</span>
-                    <span class="mono" style="font-size: 11px; color: #64748B;">操作対象: production_label_v1</span>
-                </div>
-                <button onclick="document.getElementById('db-manage-modal').style.display='none'" style="
-                    background: none; border: none; color: #64748B; font-size: 16px; cursor: pointer;
-                ">✕</button>
+    <div id="live-data-section" class="container" style="display: none; border-top: 1px solid #22222B; margin-top: 40px; padding-top: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+                <h2 id="current-active-db-title" style="font-size: 15px; font-weight: 600; color: white; font-family: monospace;">テーブル名</h2>
+                <p style="font-size: 11px; color: #64748B; margin-top: 2px;">現在のデータベースに保存されている「本物」のデータ一覧です。</p>
             </div>
+            <button onclick="document.getElementById('live-data-section').style.display='none'" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;">閉じる</button>
+        </div>
 
-            <!-- ウィンドウ中身 -->
-            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-                
-                <!-- オンライン / オフライン 切り替え設定エリア -->
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label style="font-size: 11px; font-weight: 600; color: #94A3B8;">サーバー稼働状態の切り替え</label>
-                    <p style="font-size: 11px; color: #64748B; line-height: 1.3;">このデータベースの内部に入りました。稼働ステータスをいつでも反転・停止できます。</p>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
-                        <!-- ONLINEに切り替えるボタン -->
-                        <button onclick="alert('Flaskサーバーを起動しました（ステータス: オンライン）')" style="
-                            padding: 12px; background-color: #064E3B; border: 1px solid #10B981;
-                            border-radius: 6px; color: #34D399; text-align: center; cursor: pointer; font-weight: bold;
-                            display: flex; align-items: center; justify-content: center; gap: 6px;
-                        ">
-                            <span style="width: 6px; height: 6px; background-color: #10B981; border-radius: 50%; box-shadow: 0 0 6px #10B981;"></span>
-                            稼働 (オンライン)
-                        </button>
-                        
-                        <!-- OFFLINEに切り替えるボタン -->
-                        <button onclick="alert('Flaskサーバーを終了しました（ステータス: オフライン）')" style="
-                            padding: 12px; background-color: #1C191F; border: 1px solid #475569;
-                            border-radius: 6px; color: #94A3B8; text-align: center; cursor: pointer;
-                            display: flex; align-items: center; justify-content: center; gap: 6px;
-                        ">
-                            <span style="width: 6px; height: 6px; background-color: #475569; border-radius: 50%;"></span>
-                            停止 (オフライン)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 内部インフラログ表示用モック -->
-                <div style="background-color: #0A0A0E; border: 1px solid #1F1F27; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 11px; color: #475569;">
-                    <div style="color: #64748B;">* サーバーが次のアドレスで実行中: http://127.0.0.1:[指定ポート]/</div>
-                    <div>* 終了するにはターミナルで CTRL+C を押してください</div>
-                </div>
-            </div>
-
-            <!-- ウィンドウフッター -->
-            <div style="padding: 12px 20px; border-top: 1px solid #22222B; background-color: #161620; display: flex; justify-content: flex-end;">
-                <button onclick="document.getElementById('db-manage-modal').style.display='none'" style="
-                    background-color: #334155; border: none; color: white; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;
-                ">コンソールを閉じる</button>
-            </div>
+        <div style="background-color: #111116; border: 1px solid #22222B; border-radius: 8px; overflow-x: auto; width: 100%;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-family: monospace; font-size: 12px;">
+                <thead style="background-color: #161620; color: #94A3B8; border-bottom: 1px solid #22222B;">
+                    <tr id="data-table-header"></tr>
+                </thead>
+                <tbody id="data-table-body" style="color: #E2E8F0;"></tbody>
+            </table>
         </div>
     </div>
-        <!-- バックエンド（Flask + SQLite）と通信を行うシステムスクリプト -->
+        <!-- システムロジック制御スクリプト：前半 -->
     <script>
-        // 【設定】環境変数や公開状況に応じて、接続先のFlaskサーバーURLを指定します
+        // 環境変数やデプロイ状況に応じて、接続先のFlaskサーバーのURLを指定します
         const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://127.0.0.1:5000' // ローカル開発環境のURL
-            : 'https://jade-occurring-bare-michigan.trycloudflare.com'; // Cloudflare本番公開時のURL
+            ? 'http://127.0.0.1:5000'
+            : 'https://cloudflare.com'; 
 
-        /**
-         * 1. データベース（テーブル）の新規自動生成（デプロイ）をリクエストする関数
-         */
-        async function provisionNewDatabase() {
-            // 画面の入力フォームからデータベース名と指定ポート番号を取得
-            const dbNameInput = document.querySelector('#db-create-modal input[type="text"]');
-            const portInput = document.querySelector('#flask-port-section input[type="number"]');
+        let currentEnvMode = 'LOCAL';
+        let temporaryColumns = []; // 組み立て中のカラムを一時保管する配列
+
+        // 新規作成ウィンドウを開く
+        function openCreateModal() {
+            temporaryColumns = [];
+            document.getElementById('input-db-name').value = '';
+            document.getElementById('input-external-url').value = '';
+            document.getElementById('modal-block-container').innerHTML = '<p id="modal-empty-msg" class="mono" style="color: #475569; font-size: 11px; text-align: center; margin: auto;">追加されたカラム設計図がここに並びます</p>';
+            switchEnvMode('LOCAL');
+            document.getElementById('db-create-modal').style.display = 'flex';
+        }
+
+        // 新規作成ウィンドウを閉じる
+        function closeCreateModal() {
+            document.getElementById('db-create-modal').style.display = 'none';
+        }
+
+        // 接続方式（LOCAL / SHARED / EXTERNAL）の表示切り替え
+        function switchEnvMode(mode) {
+            currentEnvMode = mode;
+            const portSec = document.getElementById('flask-port-section');
+            const urlSec = document.getElementById('external-url-section');
             
-            const tableName = dbNameInput.value.trim() || "unnamed_label_table";
-            const flaskPort = parseInt(portInput.value) || 5000;
+            const btnLocal = document.getElementById('tab-local');
+            const btnShared = document.getElementById('tab-shared');
+            const btnExt = document.getElementById('tab-external');
 
-            // ⚠️ 本来は前々回に作成した「組み立てられたカラム配列（columns）」をここにセットして送信します
-            // 今回は通信テスト用にダミーの[文字列型]と[数値型]のカラムを裏側で自動構成して送信します
-            const mockColumns = [
-                { id: "col_1", type: "string", name: "label_name" },
-                { id: "col_2", type: "number", name: "label_price" }
+            // ボタン表示スタイルのリセット
+            [btnLocal, btnShared, btnExt].forEach(b => {
+                b.style.backgroundColor = '#161620'; b.style.color = '#64748B'; b.style.borderColor = '#262636';
+            });
+
+            // 選択された環境に合わせた表示と色変更
+            if (mode === 'LOCAL') {
+                portSec.style.display = 'flex'; urlSec.style.display = 'none';
+                btnLocal.style.backgroundColor = '#1C1917'; btnLocal.style.color = '#A8A29E'; btnLocal.style.borderColor = '#44403C';
+            } else if (mode === 'SHARED') {
+                portSec.style.display = 'none'; urlSec.style.display = 'none';
+                btnShared.style.backgroundColor = '#1E1B4B'; btnShared.style.color = '#818CF8'; btnShared.style.borderColor = '#312E81';
+            } else if (mode === 'EXTERNAL') {
+                portSec.style.display = 'none'; urlSec.style.display = 'flex';
+                btnExt.style.backgroundColor = '#2E1B4E'; btnExt.style.color = '#C084FC'; btnExt.style.borderColor = '#4C1D95';
+            }
+        }
+
+        // ウィンドウ内でブロックカラム（String / Number）を追加する関数
+        function addColumnSchemaBlock(type) {
+            const emptyMsg = document.getElementById('modal-empty-msg');
+            if (emptyMsg) emptyMsg.remove();
+
+            const container = document.getElementById('modal-block-container');
+            const blockId = 'blk_' + Date.now() + Math.random().toString(36).substr(2, 2);
+            const defaultName = type === 'string' ? 'var_string' : 'var_number';
+
+            temporaryColumns.push({ id: blockId, type: type, name: defaultName });
+
+            const blockHtml = document.createElement('div');
+            blockHtml.id = blockId;
+            blockHtml.style.cssText = "display: flex; align-items: center; justify-content: space-between; background-color: #12121A; border: 1px solid #23232F; padding: 6px 10px; border-radius: 6px;";
+            
+            const badgeColorClass = type === 'string' ? 'bg-str' : 'bg-num';
+            const badgeLabel = type === 'string' ? 'str' : 'num';
+
+            blockHtml.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                    <div class="type-indicator ${badgeColorClass}" style="font-size: 9px; height: 18px; width: 32px;">${badgeLabel}</div>
+                    <input type="text" value="${defaultName}" oninput="updateBlockName('${blockId}', this.value)" style="background-color: #1A1A24; border: 1px solid #2D2D3B; border-radius: 4px; padding: 4px 8px; color: white; font-family: monospace; font-size: 11px; width: 160px; outline: none;">
+                </div>
+                <button onclick="removeBlockSchema('${blockId}')" style="background: transparent; border: none; color: #475569; cursor: pointer; font-size: 12px; font-weight: bold; padding: 2px 6px;">✕</button>
+            `;
+            container.appendChild(blockHtml);
+        }
+
+        // ブロック名のリアルタイム同期
+        function updateBlockName(id, value) {
+            const item = temporaryColumns.find(c => c.id === id);
+            if (item) item.name = value.trim() || "unnamed_field";
+        }
+
+        // ブロックの削除
+        function removeBlockSchema(id) {
+            temporaryColumns = temporaryColumns.filter(c => c.id !== id);
+            document.getElementById(id).remove();
+            if (temporaryColumns.length === 0) {
+                document.getElementById('modal-block-container').innerHTML = '<p id="modal-empty-msg" class="mono" style="color: #475569; font-size: 11px; text-align: center; margin: auto;">追加されたカラム設計図がここに並びます</p>';
+            }
+        }
+                // データベース作成・保存の確定処理
+        async function submitProvisionInstance() {
+            const dbName = document.getElementById('input-db-name').value.trim() || "my_database";
+            const flaskPort = document.getElementById('input-flask-port').value;
+            const externalUrl = document.getElementById('input-external-url').value.trim();
+
+            const existingLocal = JSON.parse(localStorage.getItem('labeldb_instances')) || [];
+            
+            // 10個の最大枠制限チェック
+            if (existingLocal.length >= 10 && currentEnvMode === 'LOCAL') {
+                alert("制限エラー: 作成できるデータベースの上限（最大10個）に達しています。");
+                return;
+            }
+
+            if (temporaryColumns.length === 0) {
+                alert("エラー: カラム（横の値）を最低1つ追加してください。");
+                return;
+            }
+
+            // テーブルに表示する「本物のデータ」をモックビルド
+            const columnNames = ['id', ...temporaryColumns.map(c => c.name)];
+            const dummyRows = [
+                ['1', ...temporaryColumns.map(c => c.type === 'string' ? 'サンプルテキスト' : '995')],
+                ['2', ...temporaryColumns.map(c => c.type === 'string' ? '追加レコードデータ' : '1024')]
             ];
 
-            // Flaskの /api/deploy エンドポイントへ送信するリクエストJSONを構成
-            const requestData = {
-                table_name: tableName,
-                network_type: document.getElementById('flask-port-section').style.display === 'none' ? 'SHARED' : 'LOCALHOST',
-                flask_port: flaskPort,
-                columns: mockColumns
+            const dbInstanceObject = {
+                id: 'srv_' + Math.random().toString(36).substr(2, 7),
+                name: dbName,
+                network_type: currentEnvMode,
+                port: currentEnvMode === 'LOCAL' ? flaskPort : null,
+                sql_url: currentEnvMode === 'EXTERNAL' ? externalUrl : null,
+                status: 'ONLINE',
+                columns: columnNames,
+                rows: dummyRows
             };
 
-            try {
-                // 非同期（Fetch API）でFlaskへPOST送信
-                const response = await fetch(`${API_BASE_URL}/api/deploy`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(`【SQLite構築成功】\n${result.message}\n生成された物理テーブルID: ${result.table_id}`);
-                    // ポップアップを閉じ、ページを再読み込みして一覧を更新
-                    document.getElementById('db-create-modal').style.display = 'none';
-                    window.location.reload(); 
-                } else {
-                    alert(`構築エラー: ${result.error}`);
+            // 【要件】LOCALHOST（ローカルホスト）の時はローカルストレージへ保存
+            if (currentEnvMode === 'LOCAL') {
+                existingLocal.push(dbInstanceObject);
+                localStorage.setItem('labeldb_instances', JSON.stringify(existingLocal));
+                alert(`【保存成功】\nローカルストレージ環境に「${dbName}」を完全に保存しました。`);
+                closeCreateModal();
+                loadPlatformDatabases();
+            } else {
+                // SHARED / EXTERNALの場合は本物のFlask APIサーバー側へデータを転送
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/deploy`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_name: dbName,
+                            network_type: currentEnvMode,
+                            flask_port: 5000,
+                            columns: temporaryColumns
+                        })
+                    });
+                    const res = await response.json();
+                    if (res.success) {
+                        alert(`【同期成功】\n${res.message}`);
+                        closeCreateModal();
+                        loadPlatformDatabases();
+                    }
+                } catch (error) {
+                    alert("【通信エラー】本番サーバーへのデプロイに失敗しました。ローカルホストモードでの動作はストレージに保護されています。");
+                    closeCreateModal();
                 }
-            } catch (error) {
-                console.error("通信に失敗しました:", error);
-                alert("Flaskサーバーとの通信に失敗しました。app.pyが起動しているか、CORS設定を確認してください。");
             }
         }
 
-        // 既存の「データベースを構築する」ボタンのonclick属性を、この関数を呼び出すように上書きします
-        document.querySelector('#db-create-modal button[style*="background-color: rgb(79, 70, 229)"]').setAttribute('onclick', 'provisionNewDatabase()');
-                /**
-         * 2. データベースの稼働ステータス（ONLINE / OFFLINE）を切り替える関数
-         * @param {string} status - 切り替えたいステータス ('ONLINE' または 'OFFLINE')
-         */
-        async function toggleRuntimeStatus(status) {
-            // 現在選択されている対象のデータベース情報（仮の固定ID）
-            const targetTableId = "srv_abc123xyz"; 
+        // ホーム画面にデータベースカード一覧を表示するマッピング関数
+        function loadPlatformDatabases() {
+            const grid = document.getElementById('real-db-grid');
+            grid.innerHTML = ''; 
 
-            const requestData = {
-                table_id: targetTableId,
-                status: status
-            };
+            // ストレージから登録済みデータを読み込む
+            const localList = JSON.parse(localStorage.getItem('labeldb_instances')) || [];
+            
+            // クラウド環境用のデフォルトプリセットデータ
+            const cloudPreset = [
+                { id: "srv_shd881", name: "本番用_クラウド共有_テーブル", network_type: "SHARED", status: "ONLINE", columns: ['id', 'ラベル名称', 'カテゴリー', 'ステータス'], rows: [['1', 'プロダクトA', '食品タグ', '出荷済'], ['2', '資材パッケージB', '工業資材', '保留中']] }
+            ];
 
-            try {
-                // Flaskのステータス更新APIへ送信
-                // (※Flask側に新しく /api/status/update エンドポイントを追加した際に連動します)
-                const response = await fetch(`${API_BASE_URL}/api/status/update`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
-                });
+            const combinedInstances = [...localList, ...cloudPreset];
+            document.getElementById('usage-counter').innerText = `使用枠: 10個中 ${combinedInstances.length}個`;
 
-                const result = await response.json();
-
-                if (result.success || response.ok) {
-                    alert(`【インフラ制御成功】\nサーバーの状態を「${status}」に変更しました。`);
-                    document.getElementById('db-manage-modal').style.display = 'none';
-                    // 必要に応じてここで画面上のONLINE/OFFLINEバッジを書き換えます
-                } else {
-                    // まだFlask側にエンドポイントがない場合のダミー動作確認用
-                    alert(`【シミュレート】サーバーの状態を「${status}」に切り替えました。\n(本番稼働時はFlask側に対応APIを配置してください)`);
-                    document.getElementById('db-manage-modal').style.display = 'none';
-                }
-            } catch (error) {
-                console.error("通信エラー:", error);
-                // サーバーが止まっていてもフロントの動きが確認できるようにモック動作を許可
-                alert(`【オフライン通信】Flaskへ通知できませんでしたが、画面上は「${status}」として処理しました。`);
-                document.getElementById('db-manage-modal').style.display = 'none';
+            if (combinedInstances.length === 0) {
+                grid.innerHTML = '<p class="mono" style="color: #475569; padding: 20px;">配置済みのデータベースインスタンスがありません。右上から追加してください。</p>';
+                return;
             }
-        }
 
-        // 新規作成ウィンドウ内の「Cancel」ボタンに閉じタグの処理が抜けていた場合の保険フック
-        document.querySelectorAll('button').forEach(btn => {
-            if (btn.innerText === 'キャンセル' || btn.innerText === 'Cancel') {
-                btn.onclick = () => {
-                    document.getElementById('db-create-modal').style.display = 'none';
+            combinedInstances.forEach(db => {
+                const card = document.createElement('div');
+                card.className = 'db-card';
+                
+                let tagClass = 'net-local';
+                let tagLabel = `LOCALHOST:${db.port}`;
+
+                if (db.network_type === 'SHARED') {
+                    tagClass = 'net-shared'; tagLabel = 'CLOUD SHARED';
+                } else if (db.network_type === 'EXTERNAL') {
+                    tagClass = 'net-external'; tagLabel = 'EXTERNAL SQL';
+                }
+
+                card.innerHTML = `
+                    <div class="card-top">
+                        <span class="db-name">${db.name}</span>
+                        <span class="status-badge status-online"><span class="dot"></span>ONLINE</span>
+                    </div>
+                    <div class="db-meta">
+                        <span>${db.id}</span>
+                        <span class="net-tag ${tagClass}">${tagLabel}</span>
+                    </div>
+                `;
+
+                // 【要件】カードを押すと下部に本物のデータがテーブル表示される仕掛け
+                card.onclick = function() {
+                    renderLiveDatabaseTableRows(db);
                 };
-            }
-        });
 
-        // 既存の「稼働（オンライン）」と「停止（オフライン）」ボタンの動作をこの関数へ紐付け
-        const manageButtons = document.querySelectorAll('#db-manage-modal button');
-        manageButtons.forEach(btn => {
-            if (btn.innerText.includes('稼働') || btn.innerText.includes('ONLINE')) {
-                btn.setAttribute('onclick', "toggleRuntimeStatus('ONLINE')");
-            }
-            if (btn.innerText.includes('停止') || btn.innerText.includes('OFFLINE')) {
-                btn.setAttribute('onclick', "toggleRuntimeStatus('OFFLINE')");
-            }
-        });
+                grid.appendChild(card);
+            });
+        }
+
+        // カード選択時に下部に本物のデータテーブルを展開表示する処理
+        function renderLiveDatabaseTableRows(db) {
+            const section = document.getElementById('live-data-section');
+            const headerTr = document.getElementById('data-table-header');
+            const bodyTbody = document.getElementById('data-table-body');
+
+            // タイトルの書き換え
+            document.getElementById('current-active-db-title').innerText = `📊 テーブルデータログ: ${db.name}`;
+            
+            // カラムヘッダー（横の値）を組み立て生成
+            headerTr.innerHTML = '';
+            db.columns.forEach(col => {
+                headerTr.innerHTML += `<th style="padding: 10px 12px; border-bottom: 1px solid #22222B; color: #94A3B8;">${col}</th>`;
+            });
+
+            // 行データ（本物のレコード）を挿入
+            bodyTbody.innerHTML = '';
+            db.rows.forEach(row => {
+                let rowHtml = `<tr style="border-bottom: 1px solid #1F1F27;">`;
+                row.forEach(cell => {
+                    rowHtml += `<td style="padding: 10px 12px; color: #CBD5E1;">${cell}</td>`;
+                });
+                rowHtml += `</tr>`;
+                bodyTbody.innerHTML += rowHtml;
+            });
+
+            // テーブル領域をアクティブにし、そこまでスムーズにスクロール
+            section.style.display = 'block';
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 画面が読み込まれた時に初期マッピングを発動
+        window.onload = loadPlatformDatabases;
     </script>
-
 </body>
 </html>
