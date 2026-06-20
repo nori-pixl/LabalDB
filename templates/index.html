@@ -2,133 +2,305 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>クラウド連携型・SQLマネージャー</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Manager Pro</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; display: flex; max-width: 1400px; margin: 0 auto; padding: 20px; gap: 20px; background: #f8f9fa; color: #333; }
-        .sidebar { width: 35%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; }
-        .main-content { width: 65%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; }
-        textarea { width: 100%; height: 160px; font-family: 'Courier New', monospace; font-size: 15px; padding: 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; resize: vertical; }
-        .db-selector { background: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .db-input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; margin-top: 5px; font-weight: bold; font-family: monospace; }
-        .query-item { background: #fdfdfd; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #dee2e6; }
-        .query-item:hover { background: #f1f3f5; }
-        .query-title { font-weight: bold; cursor: pointer; color: #007bff; display: inline-block; }
-        .query-title:hover { text-decoration: underline; }
-        .query-sql { font-family: 'Courier New', monospace; font-size: 12px; color: #555; display: block; margin-top: 6px; background: #fff; padding: 6px; border: 1px solid #e9ecef; border-radius: 4px; white-space: pre-wrap; }
-        .action-links { margin-top: 8px; font-size: 12px; text-align: right; }
-        .action-links a { margin-left: 12px; text-decoration: none; font-weight: bold; }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .btn-exec { background: #007bff; color: white; margin-top: 8px; }
-        .btn-exec:hover { background: #0056b3; }
-        .btn-save { background: #28a745; color: white; }
-        .btn-save:hover { background: #218838; }
-        .save-box { margin-top: 25px; background: #e2f0d9; padding: 15px; border-radius: 6px; border: 1px solid #c5e1a5; }
-        .error { color: #721c24; background: #f8d7da; padding: 15px; border-radius: 4px; border: 1px solid #f5c6cb; font-family: monospace; margin-top: 15px; word-break: break-all; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
-        th { background: #f1f3f5; font-weight: bold; }
-        tr:nth-child(even) { background: #f8f9fa; }
+        body { font-family: Arial, sans-serif; background-color: #f5f7fa; color: #333; margin: 0; padding: 20px; display: flex; gap: 20px; box-sizing: border-box; height: 100vh; }
+        .sidebar { width: 400px; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; height: 100%; overflow-y: auto; }
+        .main-content { flex: 1; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; height: 100%; overflow-y: auto; }
+        h3, h4 { margin: 0 0 10px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+        .form-row { display: flex; gap: 10px; align-items: center; }
+        input[type="text"], textarea, select { width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 13px; }
+        textarea { font-family: 'Courier New', monospace; height: 150px; resize: vertical; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
+        .switch-container { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #28a745; }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .db-badge-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+        .db-slot { padding: 10px; border: 1px solid #ced4da; border-radius: 4px; background: #fafafa; font-size: 12px; display: flex; flex-direction: column; gap: 5px; cursor: pointer; position: relative; }
+        .db-slot.active { border-color: #007bff; background: #e7f1ff; }
+        .db-slot .slot-title { font-weight: bold; color: #495057; word-break: break-all; }
+        .db-slot .slot-del { position: absolute; top: 5px; right: 5px; color: #dc3545; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .query-card { background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 10px; font-size: 13px; }
+        .query-card-title { color: #007bff; font-weight: bold; cursor: pointer; }
+        .query-card-sql { font-family: monospace; font-size: 11px; background: #fff; padding: 4px; border: 1px solid #eee; display: block; margin-top: 5px; white-space: pre-wrap; }
+        .dynamic-fields-box { background: #fff8e1; border: 1px solid #ffe082; padding: 12px; border-radius: 4px; margin-top: 10px; }
+        .field-input-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .result-container { overflow-x: auto; max-height: 350px; border: 1px solid #ced4da; border-radius: 4px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #ced4da; padding: 10px; text-align: left; }
+        th { background: #f1f3f5; position: sticky; top: 0; font-weight: bold; }
+        tr:nth-child(even) { background: #fafafa; }
+        .error-box { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <!-- 左側：サイドバー（ローカルストレージ連動の接続URL記憶 ＆ クエリ管理リスト） -->
     <div class="sidebar">
-        <div class="db-selector">
-            <label><strong>🌐 操作対象のDB接続URL (PostgreSQL):</strong></label>
-            <!-- 入力した接続URLパスワード等はLocalStorageに暗号化せずそのまま記憶されます -->
-            <input type="text" id="db_file_input" class="db-input" value="{{ target_db }}" placeholder="postgresql://user:pass@host:port/dbname">
+        <div>
+            <h3>Option / Settings
+                <button class="btn btn-secondary btn-sm" onclick="toggleOptionBox()">Toggle Form</button>
+            </h3>
+            <div id="option_box" style="display: none; background: #f1f3f5; padding: 15px; border-radius: 4px; margin-bottom: 10px;">
+                <form method="POST" action="/add-database" id="add-db-form">
+                    <input type="hidden" name="target_db" id="hidden_target_db" value="{{ target_db }}">
+                    <div class="form-group">
+                        <label>Display Name:</label>
+                        <input type="text" name="db_title" placeholder="e.g. Production DB" required>
+                    </div>
+                    <div class="form-group">
+                        <label>PostgreSQL URL:</label>
+                        <input type="text" id="db_url_field" name="db_url" placeholder="postgresql://user:pass@host:5432/dbname" required>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px; margin-bottom: 15px;">
+                        <div class="switch-container">
+                            <span>Save URL to Server</span>
+                            <label class="switch">
+                                <input type="checkbox" id="save_switch" checked onchange="toggleSaveMode()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm" id="db_submit_btn">Add to DB Slots</button>
+                </form>
+            </div>
         </div>
 
-        <h3>💾 保存済みSQL（JSON形式）</h3>
-        <p style="font-size: 12px; color:#6c757d; margin-top:-10px;">タイトルクリックでエディタに自動挿入</p>
-        
-        {% for q in saved_queries %}
-            <div class="query-item">
-                <div class="query-title" onclick="setQuery('{{ q.sql | e }}')">📌 {{ q.title }}</div>
-                <span class="query-sql">{{ q.sql }}</span>
-                <div class="action-links">
-                    <a href="/?edit_id={{ q.id }}&target_db={{ target_db }}" style="color: #ffc107;">✏️ 編集</a>
-                    <a href="/delete-query/{{ q.id }}?target_db={{ target_db }}" style="color: #dc3545;" onclick="return confirm('クエリを管理リストから削除しますか？')">🗑️ 削除</a>
-                </div>
+        <div>
+            <h3>Active DB Slots (Max 10)</h3>
+            <div class="db-badge-grid">
+                {% for d in registered_dbs[:10] %}
+                    <div class="db-slot {% if d.url == target_db %}active{% endif %}" onclick="switchDatabase('{{ d.url | e }}')">
+                        <span class="slot-title">{{ d.title }}</span>
+                        <a href="/delete-database/{{ d.id }}?target_db={{ target_db | urlencode }}" class="slot-del" onclick="event.stopPropagation(); return confirm('Remove this slot?')">×</a>
+                    </div>
+                {% endfor %}
+                {% if registered_dbs|length < 10 %}
+                    <div class="db-slot" style="border: 2px dashed #ccc; background: none; justify-content: center; align-items: center; color: #aaa;" onclick="focusOption()">
+                        <span>+ Empty Slot</span>
+                    </div>
+                {% endif %}
             </div>
-        {% endfor %}
+            <div style="font-size: 11px; color: #666; background: #e9ecef; padding: 6px; border-radius: 4px; word-break: break-all; font-family: monospace;">
+                Active URL:<br>{{ target_db }}
+            </div>
+        </div>
+                <div>
+            <h3>Saved Queries (JSON)</h3>
+            <div style="max-height: 200px; overflow-y: auto;">
+                {% for q in saved_queries %}
+                    <div class="query-card">
+                        <div class="query-card-title" onclick="setQuery('{{ q.sql | e }}')">{{ q.title }}</div>
+                        <span class="query-card-sql">{{ q.sql }}</span>
+                        <div style="text-align: right; margin-top: 5px; font-size: 11px;">
+                            <a href="/?edit_id={{ q.id }}&target_db={{ target_db | urlencode }}" style="color: #6c757d; text-decoration: none; margin-right: 8px;">Edit</a>
+                            <a href="/delete-query/{{ q.id }}?target_db={{ target_db | urlencode }}" style="color: var(--danger); text-decoration: none;" onclick="return confirm('Delete query?')">Delete</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
-    <!-- 右側：エディタ ＆ 実行結果 -->
     <div class="main-content">
-        <h2>💻 SQL コードスペース</h2>
+        <h2>SQL Code Space <span style="font-size: 13px; color: var(--success); font-weight: normal;">[Connected to Selected DB]</span></h2>
         
         <form method="POST" action="/" id="sql-form">
-            <textarea name="sql_code" id="editor" placeholder="ここにPostgreSQLの命令を入力してください。">{{ sql_query if not edit_query else edit_query.sql }}</textarea>
-            <br>
-            <button type="submit" class="btn btn-exec" onclick="updateFormTarget()">⚡ クエリを実行する</button>
+            <textarea name="sql_code" id="editor" placeholder="Enter SQL code to execute on the selected database.">{{ sql_query if not edit_query else edit_query.sql }}</textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <button type="submit" class="btn btn-primary" onclick="updateFormTarget()">Execute Query in Selected DB</button>
+                <button type="button" class="btn btn-secondary" onclick="openInNewWindow()">Open in New Window</button>
+            </div>
         </form>
 
-        <!-- クエリ保存・編集フォーム -->
-        <form method="POST" action="/save-query" class="save-box">
+        <div class="dynamic-fields-box">
+            <h4 style="margin: 0 0 10px 0; border: none; padding: 0;">Dynamic Table Creator</h4>
+            <div class="form-row" style="margin-bottom: 10px;">
+                <input type="text" id="new_table_name" placeholder="Table Name (e.g. users)" style="width: 250px;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="generateColumnInputs()">Add Labels inside Database</button>
+            </div>
+            
+            <div id="dynamic_columns_area"></div>
+            
+            <button type="button" class="btn btn-success btn-sm" id="generate_sql_btn" style="display: none; margin-top: 10px;" onclick="buildAndSetCreateTableSQL()">Set Generate SQL to Editor</button>
+        </div>
+
+        <form method="POST" action="/save-query" class="save-box" style="margin-top: 10px; background: #e9ecef; border: 1px solid #ced4da; padding: 15px; border-radius: 4px;">
             <input type="hidden" name="sql_code" id="save-sql-hidden">
             <input type="hidden" name="target_db" id="save-db-hidden">
             <input type="hidden" name="query_id" value="{{ edit_query.id if edit_query else '' }}">
             
-            <label><strong>{% if edit_query %}✏️ クエリの編集と上書き{% else %}📌 現在のエディタ内容を保存{% endif %}</strong></label><br>
-            <input type="text" name="title" value="{{ edit_query.title if edit_query else '' }}" placeholder="クエリのタイトルを入力" required style="padding: 8px; width: 65%; margin-top:8px; border: 1px solid #ced4da; border-radius: 4px;">
-            <button type="submit" class="btn btn-save" onclick="syncSaveFields()">💾 {% if edit_query %}上書き保存{% else %}新規追加{% endif %}</button>
-            {% if edit_query %}
-                <a href="/?target_db={{ target_db }}" style="margin-left:15px; font-size:14px; color:#6c757d; text-decoration:none;">キャンセル</a>
-            {% endif %}
+            <label style="font-size: 13px; font-weight: bold;">{% if edit_query %}Edit Saved Query{% else %}Save Current SQL to JSON List{% endif %}</label>
+            <div class="form-row" style="margin-top: 8px;">
+                <input type="text" name="title" value="{{ edit_query.title if edit_query else '' }}" placeholder="Query Title (e.g. Fetch all users)" required style="flex: 1;">
+                <button type="submit" class="btn btn-success" onclick="syncSaveFields()">Save Query</button>
+                {% if edit_query %}
+                    <a href="/?target_db={{ target_db | urlencode }}" style="font-size: 13px; color: #666; text-decoration: none;">Cancel</a>
+                {% endif %}
+            </div>
         </form>
 
-        {% if error_message %}
-            <div class="error"><strong>❌ エラー発生:</strong><br>{{ error_message }}</div>
-        {% endif %}
+        <div>
+            <h3>Execution Results</h3>
+            {% if error_message %}
+                <div class="error-box"><strong>SQL Error:</strong><br>{{ error_message }}</div>
+            {% endif %}
 
-        {% if headers %}
-            <h3>📊 実行結果</h3>
-            <div style="overflow-x: auto; max-height: 400px;">
-                <table>
-                    <thead>
-                        <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
-                    </thead>
-                    <tbody>
-                        {% for row in rows %}
-                            <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
+            {% if headers %}
+                <div class="result-container">
+                    <table>
+                        <thead>
+                            <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
     </div>
-
-    <script>
-    // ページロード時にLocalStorageをチェックし、保存されたURLがあれば反映
+        <script>
     window.addEventListener('DOMContentLoaded', () => {
         const savedDbUrl = localStorage.getItem('active_pg_url');
         const urlParams = new URLSearchParams(window.location.search);
         
         if (savedDbUrl && !urlParams.has('target_db')) {
-            document.getElementById('db_file_input').value = savedDbName;
             window.location.href = `/?target_db=${encodeURIComponent(savedDbUrl)}`;
+        }
+        
+        const isLocalOnly = localStorage.getItem('save_mode_local') === 'true';
+        if (isLocalOnly) {
+            document.getElementById('save_switch').checked = false;
+            toggleSaveMode();
         }
     });
 
-    // 入力欄が変更されたらLocalStorageに即時自動保存
-    document.getElementById('db_file_input').addEventListener('input', (e) => {
-        localStorage.setItem('active_pg_url', e.target.value);
-    });
+    function toggleOptionBox() {
+        const box = document.getElementById('option_box');
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function focusOption() {
+        document.getElementById('option_box').style.display = 'block';
+        document.getElementById('db_url_field').focus();
+    }
+
+    function toggleSaveMode() {
+        const switchBtn = document.getElementById('save_switch');
+        const form = document.getElementById('add-db-form');
+        const submitBtn = document.getElementById('db_submit_btn');
+        
+        if (switchBtn.checked) {
+            form.action = "/add-database";
+            submitBtn.innerText = "Add to DB Slots (Server Save)";
+            localStorage.setItem('save_mode_local', 'false');
+        } else {
+            form.action = "javascript:void(0);";
+            form.onsubmit = saveDatabaseToLocalStorageOnly;
+            submitBtn.innerText = "Apply to Front-end Slot Instantly";
+            localStorage.setItem('save_mode_local', 'true');
+        }
+    }
+
+    function saveDatabaseToLocalStorageOnly() {
+        const urlField = document.getElementById('db_url_field').value;
+        if (!urlField) return;
+        localStorage.setItem('active_pg_url', urlField);
+        alert("URL loaded to temporary front-end slot without saving to server.");
+        window.location.href = `/?target_db=${encodeURIComponent(urlField)}`;
+    }
+
+    function switchDatabase(url) {
+        localStorage.setItem('active_pg_url', url);
+        window.location.href = `/?target_db=${encodeURIComponent(url)}`;
+    }
 
     function setQuery(sql) {
         document.getElementById('editor').value = sql;
     }
 
     function updateFormTarget() {
-        const dbUrl = document.getElementById('db_file_input').value;
-        document.getElementById('sql-form').action = `/?target_db=${encodeURIComponent(dbUrl)}`;
+        const currentDb = new URLSearchParams(window.location.search).get('target_db') || '';
+        document.getElementById('sql-form').action = `/?target_db=${encodeURIComponent(currentDb)}`;
     }
 
     function syncSaveFields() {
+        const currentDb = new URLSearchParams(window.location.search).get('target_db') || '';
         document.getElementById('save-sql-hidden').value = document.getElementById('editor').value;
-        document.getElementById('save-db-hidden').value = document.getElementById('db_file_input').value;
+        document.getElementById('save-db-hidden').value = currentDb;
+    }
+
+    function openInNewWindow() {
+        const currentUrl = window.location.href;
+        window.open(currentUrl, 'SQL_Popup', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    }
+
+    function generateColumnInputs() {
+        const countStr = prompt("Enter the number of columns (labels) to create:", "3");
+        const count = parseInt(countStr);
+        if (isNaN(count) || count <= 0) return;
+        
+        const container = document.getElementById('dynamic_columns_area');
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= count; i++) {
+            const row = document.createElement('div');
+            row.className = 'field-input-row';
+            row.innerHTML = `
+                <span style="font-size:12px; font-weight:bold; min-width:60px; display:inline-block;">Label ${i}:</span>
+                <input type="text" placeholder="Column Name (e.g. id)" class="col-name-input" required style="width:50%;">
+                <select class="col-type-select" style="width:35%;">
+                    <option value="SERIAL PRIMARY KEY">SERIAL</option>
+                    <option value="TEXT" selected>TEXT</option>
+                    <option value="INTEGER">INTEGER</option>
+                    <option value="TIMESTAMP DEFAULT CURRENT_TIMESTAMP">TIMESTAMP</option>
+                    <option value="JSONB">JSONB</option>
+                </select>
+            `;
+            container.appendChild(row);
+        }
+        document.getElementById('generate_sql_btn').style.display = 'inline-block';
+    }
+
+    function buildAndSetCreateTableSQL() {
+        const tableName = document.getElementById('new_table_name').value.trim();
+        if (!tableName) {
+            alert("Please enter a table name.");
+            return;
+        }
+        
+        const nameInputs = document.querySelectorAll('.col-name-input');
+        const typeSelects = document.querySelectorAll('.col-type-select');
+        
+        let columnDefinitions = [];
+        for (let i = 0; i < nameInputs.length; i++) {
+            const colName = nameInputs[i].value.trim();
+            const colType = typeSelects[i].value;
+            if (colName) {
+                columnDefinitions.push(`${colName} ${colType}`);
+            }
+        }
+        
+        if (columnDefinitions.length === 0) {
+            alert("Please enter at least one column name.");
+            return;
+        }
+        
+        const generatedSQL = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${columnDefinitions.join(',\n    ')}\n);`;
+        document.getElementById('editor').value = generatedSQL;
     }
     </script>
 </body>
