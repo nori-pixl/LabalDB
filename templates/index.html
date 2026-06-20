@@ -267,6 +267,126 @@
             </div>
         </div>
     </div>
+        <!-- バックエンド（Flask + SQLite）と通信を行うシステムスクリプト -->
+    <script>
+        // 【設定】環境変数や公開状況に応じて、接続先のFlaskサーバーURLを指定します
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:5000' // ローカル開発環境のURL
+            : 'https://jade-occurring-bare-michigan.trycloudflare.com'; // Cloudflare本番公開時のURL
+
+        /**
+         * 1. データベース（テーブル）の新規自動生成（デプロイ）をリクエストする関数
+         */
+        async function provisionNewDatabase() {
+            // 画面の入力フォームからデータベース名と指定ポート番号を取得
+            const dbNameInput = document.querySelector('#db-create-modal input[type="text"]');
+            const portInput = document.querySelector('#flask-port-section input[type="number"]');
+            
+            const tableName = dbNameInput.value.trim() || "unnamed_label_table";
+            const flaskPort = parseInt(portInput.value) || 5000;
+
+            // ⚠️ 本来は前々回に作成した「組み立てられたカラム配列（columns）」をここにセットして送信します
+            // 今回は通信テスト用にダミーの[文字列型]と[数値型]のカラムを裏側で自動構成して送信します
+            const mockColumns = [
+                { id: "col_1", type: "string", name: "label_name" },
+                { id: "col_2", type: "number", name: "label_price" }
+            ];
+
+            // Flaskの /api/deploy エンドポイントへ送信するリクエストJSONを構成
+            const requestData = {
+                table_name: tableName,
+                network_type: document.getElementById('flask-port-section').style.display === 'none' ? 'SHARED' : 'LOCALHOST',
+                flask_port: flaskPort,
+                columns: mockColumns
+            };
+
+            try {
+                // 非同期（Fetch API）でFlaskへPOST送信
+                const response = await fetch(`${API_BASE_URL}/api/deploy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`【SQLite構築成功】\n${result.message}\n生成された物理テーブルID: ${result.table_id}`);
+                    // ポップアップを閉じ、ページを再読み込みして一覧を更新
+                    document.getElementById('db-create-modal').style.display = 'none';
+                    window.location.reload(); 
+                } else {
+                    alert(`構築エラー: ${result.error}`);
+                }
+            } catch (error) {
+                console.error("通信に失敗しました:", error);
+                alert("Flaskサーバーとの通信に失敗しました。app.pyが起動しているか、CORS設定を確認してください。");
+            }
+        }
+
+        // 既存の「データベースを構築する」ボタンのonclick属性を、この関数を呼び出すように上書きします
+        document.querySelector('#db-create-modal button[style*="background-color: rgb(79, 70, 229)"]').setAttribute('onclick', 'provisionNewDatabase()');
+                /**
+         * 2. データベースの稼働ステータス（ONLINE / OFFLINE）を切り替える関数
+         * @param {string} status - 切り替えたいステータス ('ONLINE' または 'OFFLINE')
+         */
+        async function toggleRuntimeStatus(status) {
+            // 現在選択されている対象のデータベース情報（仮の固定ID）
+            const targetTableId = "srv_abc123xyz"; 
+
+            const requestData = {
+                table_id: targetTableId,
+                status: status
+            };
+
+            try {
+                // Flaskのステータス更新APIへ送信
+                // (※Flask側に新しく /api/status/update エンドポイントを追加した際に連動します)
+                const response = await fetch(`${API_BASE_URL}/api/status/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.success || response.ok) {
+                    alert(`【インフラ制御成功】\nサーバーの状態を「${status}」に変更しました。`);
+                    document.getElementById('db-manage-modal').style.display = 'none';
+                    // 必要に応じてここで画面上のONLINE/OFFLINEバッジを書き換えます
+                } else {
+                    // まだFlask側にエンドポイントがない場合のダミー動作確認用
+                    alert(`【シミュレート】サーバーの状態を「${status}」に切り替えました。\n(本番稼働時はFlask側に対応APIを配置してください)`);
+                    document.getElementById('db-manage-modal').style.display = 'none';
+                }
+            } catch (error) {
+                console.error("通信エラー:", error);
+                // サーバーが止まっていてもフロントの動きが確認できるようにモック動作を許可
+                alert(`【オフライン通信】Flaskへ通知できませんでしたが、画面上は「${status}」として処理しました。`);
+                document.getElementById('db-manage-modal').style.display = 'none';
+            }
+        }
+
+        // 新規作成ウィンドウ内の「Cancel」ボタンに閉じタグの処理が抜けていた場合の保険フック
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.innerText === 'キャンセル' || btn.innerText === 'Cancel') {
+                btn.onclick = () => {
+                    document.getElementById('db-create-modal').style.display = 'none';
+                };
+            }
+        });
+
+        // 既存の「稼働（オンライン）」と「停止（オフライン）」ボタンの動作をこの関数へ紐付け
+        const manageButtons = document.querySelectorAll('#db-manage-modal button');
+        manageButtons.forEach(btn => {
+            if (btn.innerText.includes('稼働') || btn.innerText.includes('ONLINE')) {
+                btn.setAttribute('onclick', "toggleRuntimeStatus('ONLINE')");
+            }
+            if (btn.innerText.includes('停止') || btn.innerText.includes('OFFLINE')) {
+                btn.setAttribute('onclick', "toggleRuntimeStatus('OFFLINE')");
+            }
+        });
+    </script>
 
 </body>
 </html>
