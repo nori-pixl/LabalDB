@@ -1,19 +1,20 @@
 import os
 import json
-import psycopg2
-from psycopg2.extras import DictCursor
+import psycopg
+from psycopg.rows import dict_row
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
-# Renderの環境変数から自動でURLを読み込みます（後ほどRenderの画面で登録します）
+# Renderの環境変数から自動でURLを読み込みます
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def get_db_connection():
     """外部データベース（あなたのサーバー）に接続する関数"""
     if not DATABASE_URL:
         raise ValueError("環境変数 DATABASE_URL が設定されていません。RenderのDashboardで設定してください。")
-    return psycopg2.connect(DATABASE_URL)
+    # psycopg v3 では、dict_rowを接続時に指定することも可能です
+    return psycopg.connect(DATABASE_URL)
 
 def init_system_db():
     """管理用テーブルと初期のJSONクエリを自動作成（起動時に1度だけ実行）"""
@@ -21,7 +22,7 @@ def init_system_db():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # クエリ群をまるごと1つのJSONB（PostgreSQLの高速JSON型）として管理
+        # クエリ群をまるごと1つのJSONBとして管理
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS query_managers (
                 id SERIAL PRIMARY KEY,
@@ -63,10 +64,12 @@ def index():
     # 1. 保存されたクエリ（JSONB）をデータベースから読み出す
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(cursor_factory=DictCursor)
+        # row_factory=dict_row を指定することで辞書型で取得できます
+        cursor = conn.cursor(row_factory=dict_row)
         cursor.execute("SELECT queries FROM query_managers WHERE id = 1;")
         row = cursor.fetchone()
         if row and row['queries']:
+            # psycopg v3ではJSONBは自動でPythonのリスト/辞書にパースされます
             saved_queries = row['queries']
         cursor.close()
         conn.close()
@@ -89,15 +92,18 @@ def index():
         if sql_query.strip():
             try:
                 # 画面の入力欄から渡された「任意のPostgreSQL接続URL」へダイレクトに接続して実行
-                target_conn = psycopg2.connect(target_db)
+                target_conn = psycopg.connect(target_db)
                 target_cursor = target_conn.cursor()
                 
+                # 生のSQLコードをそのまま実行
                 target_cursor.execute(sql_query)
                 
                 if target_cursor.description:
-                    result_headers = [desc for desc in target_cursor.description]
+                    # SELECT文などの結果がある場合、ヘッダーと行データを取得
+                    result_headers = [desc.name for desc in target_cursor.description]
                     result_rows = target_cursor.fetchall()
                 else:
+                    # INSERT/UPDATE/DELETE文などの場合
                     target_conn.commit()
                     result_headers = ["処理結果"]
                     result_rows = [[f"成功しました（影響を受けた行数: {target_cursor.rowcount}）"]]
@@ -126,7 +132,7 @@ def save_query():
     if title and sql:
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(cursor_factory=DictCursor)
+            cursor = conn.cursor(row_factory=dict_row)
             cursor.execute("SELECT queries FROM query_managers WHERE id = 1;")
             row = cursor.fetchone()
             queries_list = row['queries'] if row and row['queries'] else []
@@ -141,6 +147,7 @@ def save_query():
                 new_id = max([q['id'] for q in queries_list]) + 1 if queries_list else 1
                 queries_list.append({"id": new_id, "title": title, "sql": sql})
 
+            # psycopg v3 では、json.dumpsをしなくても自動でJSONB型として保存可能です
             cursor.execute("UPDATE query_managers SET queries = %s WHERE id = 1;", (json.dumps(queries_list, ensure_ascii=False),))
             conn.commit()
             cursor.close()
@@ -157,7 +164,7 @@ def delete_query(q_id):
     
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(cursor_factory=DictCursor)
+        cursor = conn.cursor(row_factory=dict_row)
         cursor.execute("SELECT queries FROM query_managers WHERE id = 1;")
         row = cursor.fetchone()
         queries_list = row['queries'] if row and row['queries'] else []
@@ -177,6 +184,6 @@ def delete_query(q_id):
 if __name__ == '__main__':
     # 初回のみ起動時にテーブル作成を試みる
     init_system_db()
-    # Render環境の割り当てポート（なければ5000番）で起動
+    # Render環境のポート（なければ5000番）で起動
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
